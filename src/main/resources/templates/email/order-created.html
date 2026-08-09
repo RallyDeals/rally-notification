@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--/*
+  Model attributes expected by this template:
+    orderId    : UUID       - the created order's id
+    items      : List<OrderProductResponse> - productId, productName, productImageUrl, quantity, unitPrice
+    totalPrice : BigDecimal - the order's total price
+    address    : String     - the delivery address
+*/-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Your order has been created</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f7;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7;padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;">
+                <tr>
+                    <td style="background-color:#1a73e8;padding:24px;text-align:center;">
+                        <h1 style="margin:0;color:#ffffff;font-size:20px;">Order Created</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:24px;color:#333333;">
+                        <p style="font-size:16px;margin-top:0;">
+                            Good news! Your order
+                            <strong th:text="${orderId}">orderId</strong>
+                            has been created successfully. Here's what you ordered:
+                        </p>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-collapse:collapse;">
+                            <tr th:each="item : ${items}" style="border-bottom:1px solid #eeeeee;">
+                                <td style="padding:12px 0;width:64px;">
+                                    <img th:src="${item.productImageUrl}" alt="" width="56" height="56"
+                                         style="border-radius:6px;object-fit:cover;"/>
+                                </td>
+                                <td style="padding:12px 8px;">
+                                    <div th:text="${item.productName}" style="font-size:15px;font-weight:bold;color:#333333;">Product name</div>
+                                    <div style="font-size:13px;color:#888888;">
+                                        Qty: <span th:text="${item.quantity}">1</span>
+                                    </div>
+                                </td>
+                                <td style="padding:12px 0;text-align:right;font-size:15px;color:#333333;" th:text="${'$' + #numbers.formatDecimal(item.unitPrice, 1, 2)}">
+                                    $0.00
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+                            <tr style="border-top:1px solid #eeeeee;">
+                                <td style="padding:12px 0;font-size:15px;font-weight:bold;color:#333333;">Total</td>
+                                <td style="padding:12px 0;text-align:right;font-size:15px;font-weight:bold;color:#333333;" th:text="${'$' + #numbers.formatDecimal(totalPrice, 1, 2)}">$0.00</td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size:14px;color:#555555;margin-top:24px;">
+                            Delivering to: <strong th:text="${address}">address</strong>
+                        </p>
+
+                        <p style="font-size:14px;color:#888888;margin-top:24px;">
+                            We'll notify you as your order progresses. Thanks for shopping with Rally!
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
