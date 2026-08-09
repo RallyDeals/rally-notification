@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--/*
+  Model attributes expected by this template:
+    orderId    : UUID              - the cancelled order's id
+    dealId     : UUID              - the deal the order belonged to
+    reason     : CancelReason      - cancellation reason code
+    items      : List<OrderProductResponse> - productId, productName, productImageUrl, quantity, unitPrice
+    totalPrice : BigDecimal        - the order's total price
+*/-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Your deal order has been cancelled</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f7;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7;padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;">
+                <tr>
+                    <td style="background-color:#d93025;padding:24px;text-align:center;">
+                        <h1 style="margin:0;color:#ffffff;font-size:20px;">Deal Order Cancelled</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:24px;color:#333333;">
+                        <p style="font-size:16px;margin-top:0;">
+                            Your order <strong th:text="${orderId}">orderId</strong> from deal
+                            <strong th:text="${dealId}">dealId</strong> has been cancelled.
+                        </p>
+                        <p style="font-size:14px;background-color:#fdecea;border-left:4px solid #d93025;padding:12px 16px;border-radius:4px;" th:switch="${reason.name()}">
+                            Reason:
+                            <strong th:case="'INSUFFICIENT_STOCK'">One or more items were out of stock</strong>
+                            <strong th:case="'INVENTORY_UNREACHABLE'">We couldn't verify inventory in time</strong>
+                            <strong th:case="'RESERVATION_INCOMPLETE'">Your item reservation could not be completed</strong>
+                            <strong th:case="'PAYMENT_DECLINED'">Your payment was declined</strong>
+                            <strong th:case="'PAYMENT_TIMEOUT'">Your payment timed out</strong>
+                            <strong th:case="'DEAL_FAILED'">The deal did not reach its required participants</strong>
+                            <strong th:case="'DEAL_RESOLVED'">The deal was resolved and this order is no longer needed</strong>
+                            <strong th:case="'PARTICIPANT_LEFT'">You left the deal before it was completed</strong>
+                            <strong th:case="*">An unexpected error occurred while processing your order</strong>
+                        </p>
+
+                        <p style="font-size:14px;color:#555555;margin-top:24px;">The following items were part of this order:</p>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+                            <tr th:each="item : ${items}" style="border-bottom:1px solid #eeeeee;">
+                                <td style="padding:12px 0;width:64px;">
+                                    <img th:src="${item.productImageUrl}" alt="" width="56" height="56"
+                                         style="border-radius:6px;object-fit:cover;"/>
+                                </td>
+                                <td style="padding:12px 8px;">
+                                    <div th:text="${item.productName}" style="font-size:15px;font-weight:bold;color:#333333;">Product name</div>
+                                    <div style="font-size:13px;color:#888888;">
+                                        Qty: <span th:text="${item.quantity}">1</span>
+                                    </div>
+                                </td>
+                                <td style="padding:12px 0;text-align:right;font-size:15px;color:#333333;" th:text="${'$' + #numbers.formatDecimal(item.unitPrice, 1, 2)}">
+                                    $0.00
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+                            <tr style="border-top:1px solid #eeeeee;">
+                                <td style="padding:12px 0;font-size:15px;font-weight:bold;color:#333333;">Total</td>
+                                <td style="padding:12px 0;text-align:right;font-size:15px;font-weight:bold;color:#333333;" th:text="${'$' + #numbers.formatDecimal(totalPrice, 1, 2)}">$0.00</td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size:14px;color:#888888;margin-top:24px;">
+                            If you were charged, any payment will be refunded automatically. Sorry for the inconvenience.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

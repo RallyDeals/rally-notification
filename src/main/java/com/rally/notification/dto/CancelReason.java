@@ -1,0 +1,13 @@
+package com.rally.notification.dto;
+
+public enum CancelReason {
+    INSUFFICIENT_STOCK,
+    INVENTORY_UNREACHABLE,
+    RESERVATION_INCOMPLETE,
+    PAYMENT_DECLINED,
+    PAYMENT_TIMEOUT,
+    DEAL_FAILED,
+    DEAL_RESOLVED,
+    PARTICIPANT_LEFT,
+    SERVER_ERROR
+}
