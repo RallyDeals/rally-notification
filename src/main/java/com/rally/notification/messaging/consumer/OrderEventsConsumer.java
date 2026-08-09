@@ -1,6 +1,11 @@
 package com.rally.notification.messaging.consumer;
 
 import com.rally.notification.messaging.config.KafkaTopics;
+import com.rally.notification.messaging.event.DealOrderCancelled;
+import com.rally.notification.messaging.event.NormalOrderCancelled;
+import com.rally.notification.messaging.event.OrderAuthorized;
+import com.rally.notification.messaging.event.OrderCreated;
+import com.rally.notification.messaging.support.EventTypes;
 import com.rally.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +28,12 @@ public class OrderEventsConsumer {
         String eventType = extractType(record);
         if (eventType == null) return;
         switch (eventType) {
+            case EventTypes.ORDER_CREATED -> notificationService.notifyOrderCreated((OrderCreated) event);
+            case EventTypes.ORDER_AUTHORIZED -> notificationService.notifyOrderAuthorized((OrderAuthorized) event);
+            case EventTypes.ORDER_DEAL_CANCELLED ->
+                    notificationService.notifyDealOrderCancelled((DealOrderCancelled) event);
+            case EventTypes.ORDER_NORMAL_CANCELLED ->
+                    notificationService.notifyNormalOrderCancelled((NormalOrderCancelled) event);
             default -> System.out.println("Unhandled participation event type: " + eventType);
         }
     }
