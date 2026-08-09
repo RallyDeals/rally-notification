@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: rally_mailpit
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - rally-network
+
+#  notification-service:
+#    build:
+#      context: ../rally-notification
+#      dockerfile: Dockerfile
+#      secrets:
+#        - gh_username
+#        - gh_token
+#    container_name: notification_service
+#    env_file:
+#      - .env
+#    environment:
+#      # broker/network name assumes rally-order's docker-compose stack is
+#      # already running (default compose network name = <project-dir>_rally-network,
+#      # e.g. "rally-order_rally-network" - adjust to match your setup)
+#      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:29092
+#      SPRING_MAIL_HOST: mailpit
+#      SPRING_MAIL_PORT: 1025
+#      USER_SERVICE_URL: http://user-service:8011
+#    ports:
+#      - "8010:8010"
+#    depends_on:
+#      - mailpit
+#    networks:
+#      - rally-network
+
+networks:
+  rally-network:
+    driver: bridge
+    # mark external and set the name below if joining rally-order's
+    # existing network to reach its Kafka broker, e.g.:
+    # external: true
+    # name: rally-order_rally-network
+
+secrets:
+  gh_username:
+    environment: GH_USERNAME
+  gh_token:
+    environment: GITHUB_TOKEN
