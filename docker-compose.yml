@@ -5,8 +5,8 @@ services:
     image: axllent/mailpit:latest
     container_name: rally_mailpit
     ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+      - "1080:1025" # SMTP
+      - "8035:8025" # Web UI
     networks:
       - rally-network
 
