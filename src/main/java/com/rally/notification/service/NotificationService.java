@@ -3,9 +3,13 @@ package com.rally.notification.service;
 import com.rally.notification.client.UserServiceClient;
 import com.rally.notification.mail.EmailSender;
 import com.rally.notification.messaging.event.DealOrderCancelled;
+import com.rally.notification.messaging.event.EmailVerificationRequested;
 import com.rally.notification.messaging.event.NormalOrderCancelled;
 import com.rally.notification.messaging.event.OrderAuthorized;
 import com.rally.notification.messaging.event.OrderCreated;
+import com.rally.notification.messaging.event.PasswordResetRequested;
+import com.rally.notification.messaging.event.UserRegistered;
+import com.rally.notification.security.OtpDecryptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -19,6 +23,26 @@ public class NotificationService {
     private final UserServiceClient userServiceClient;
     private final EmailSender emailSender;
     private final SpringTemplateEngine templateEngine;
+    private final OtpDecryptor otpDecryptor;
+
+    public void notifyUserRegistered(UserRegistered event) {
+        Context context = new Context();
+        context.setVariable("email", event.email());
+        context.setVariable("role", event.role());
+        sendEmail(event.email(), "Welcome to Rally!", "email/user-registered", context);
+    }
+
+    public void notifyEmailVerificationRequested(EmailVerificationRequested event) {
+        Context context = new Context();
+        context.setVariable("otp", otpDecryptor.decrypt(event.otp()));
+        sendEmail(event.email(), "Verify your email", "email/email-verification", context);
+    }
+
+    public void notifyPasswordResetRequested(PasswordResetRequested event) {
+        Context context = new Context();
+        context.setVariable("otp", otpDecryptor.decrypt(event.otp()));
+        sendEmail(event.email(), "Reset your password", "email/password-reset", context);
+    }
 
     public void notifyOrderCreated(OrderCreated event) {
         Context context = new Context();
@@ -59,6 +83,10 @@ public class NotificationService {
 
     private void sendEmail(UUID userId, String subject, String template, Context context) {
         String email = userServiceClient.getUserEmail(userId);
+        sendEmail(email, subject, template, context);
+    }
+
+    private void sendEmail(String email, String subject, String template, Context context) {
         String htmlBody = templateEngine.process(template, context);
         emailSender.send(email, subject, htmlBody);
     }
