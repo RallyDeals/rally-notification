@@ -3,6 +3,9 @@ import com.rally.notification.messaging.event.DealOrderCancelled;
 import com.rally.notification.messaging.event.NormalOrderCancelled;
 import com.rally.notification.messaging.event.OrderCreated;
 import com.rally.notification.messaging.event.OrderAuthorized;
+import com.rally.notification.messaging.event.EmailVerificationRequested;
+import com.rally.notification.messaging.event.PasswordResetRequested;
+import com.rally.notification.messaging.event.UserRegistered;
 import com.rally.notification.messaging.support.EventTypes;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -66,11 +69,14 @@ public class KafkaConfig {
         typeMapper.setClassIdFieldName("X-Type");
         typeMapper.setTypePrecedence(JacksonJavaTypeMapper.TypePrecedence.TYPE_ID);
         typeMapper.addTrustedPackages("com.rally.notification.messaging.event");
-        typeMapper.setIdClassMapping(Map.of(
-                EventTypes.ORDER_CREATED, OrderCreated.class,
-                EventTypes.ORDER_DEAL_CANCELLED, DealOrderCancelled.class,
-                EventTypes.ORDER_NORMAL_CANCELLED, NormalOrderCancelled.class,
-                EventTypes.ORDER_AUTHORIZED, OrderAuthorized.class
+        typeMapper.setIdClassMapping(Map.ofEntries(
+                Map.entry(EventTypes.ORDER_CREATED, OrderCreated.class),
+                Map.entry(EventTypes.ORDER_DEAL_CANCELLED, DealOrderCancelled.class),
+                Map.entry(EventTypes.ORDER_NORMAL_CANCELLED, NormalOrderCancelled.class),
+                Map.entry(EventTypes.ORDER_AUTHORIZED, OrderAuthorized.class),
+                Map.entry(EventTypes.USER_REGISTERED, UserRegistered.class),
+                Map.entry(EventTypes.USER_EMAIL_VERIFICATION_REQUESTED, EmailVerificationRequested.class),
+                Map.entry(EventTypes.USER_PASSWORD_RESET_REQUESTED, PasswordResetRequested.class)
         ));
         return typeMapper;
     }
