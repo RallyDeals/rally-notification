@@ -24,22 +24,51 @@ public class OrderEventsConsumer {
 
     @KafkaListener(topics = KafkaTopics.ORDER, groupId = "${spring.kafka.consumer.group-id}")
     public void onMessage(ConsumerRecord<String, Object> record) {
-        Object event = record.value();
-        String eventType = extractType(record);
-        if (eventType == null) return;
-        switch (eventType) {
-            case EventTypes.ORDER_CREATED -> notificationService.notifyOrderCreated((OrderCreated) event);
-            case EventTypes.ORDER_AUTHORIZED -> notificationService.notifyOrderAuthorized((OrderAuthorized) event);
-            case EventTypes.ORDER_DEAL_CANCELLED ->
-                    notificationService.notifyDealOrderCancelled((DealOrderCancelled) event);
-            case EventTypes.ORDER_NORMAL_CANCELLED ->
-                    notificationService.notifyNormalOrderCancelled((NormalOrderCancelled) event);
-            default -> System.out.println("Unhandled participation event type: " + eventType);
+        String eventType = extractHeader(record, KafkaTopics.HEADER_EVENT_TYPE);
+        String messageId = extractHeader(record, KafkaTopics.HEADER_EVENT_ID);
+        String correlationId = extractHeader(record, KafkaTopics.HEADER_CORRELATION_ID);
+
+        if (eventType == null) {
+            log.warn("Ignoring order event without event type header: topic={}, partition={}, offset={}",
+                    record.topic(), record.partition(), record.offset());
+            return;
         }
+
+        log.info("Kafka order event consumed: messageId={}, type={}, correlationId={}, topic={}, partition={}, offset={}",
+                messageId, eventType, correlationId, record.topic(), record.partition(), record.offset());
+
+        try {
+            switch (eventType) {
+                case EventTypes.ORDER_CREATED -> {
+                    log.debug("Dispatching {} to notificationService.notifyOrderCreated", eventType);
+                    notificationService.notifyOrderCreated((OrderCreated) record.value());
+                }
+                case EventTypes.ORDER_AUTHORIZED -> {
+                    log.debug("Dispatching {} to notificationService.notifyOrderAuthorized", eventType);
+                    notificationService.notifyOrderAuthorized((OrderAuthorized) record.value());
+                }
+                case EventTypes.ORDER_DEAL_CANCELLED -> {
+                    log.debug("Dispatching {} to notificationService.notifyDealOrderCancelled", eventType);
+                    notificationService.notifyDealOrderCancelled((DealOrderCancelled) record.value());
+                }
+                case EventTypes.ORDER_NORMAL_CANCELLED -> {
+                    log.debug("Dispatching {} to notificationService.notifyNormalOrderCancelled", eventType);
+                    notificationService.notifyNormalOrderCancelled((NormalOrderCancelled) record.value());
+                }
+                default -> log.warn("Unhandled order event type: {}", eventType);
+            }
+        } catch (Exception e) {
+            log.error("Failed to process order event: messageId={}, type={}, correlationId={}, topic={}, partition={}, offset={}",
+                    messageId, eventType, correlationId, record.topic(), record.partition(), record.offset(), e);
+            throw e;
+        }
+
+        log.info("Kafka order event processed: messageId={}, type={}, correlationId={}, topic={}",
+                messageId, eventType, correlationId, record.topic());
     }
 
-    private String extractType(ConsumerRecord<String, Object> record) {
-        Header header = record.headers().lastHeader(KafkaTopics.HEADER_EVENT_TYPE);
+    private String extractHeader(ConsumerRecord<String, Object> record, String key) {
+        Header header = record.headers().lastHeader(key);
         return header != null ? new String(header.value(), StandardCharsets.UTF_8) : null;
     }
 }

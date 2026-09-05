@@ -11,12 +11,14 @@ import com.rally.notification.messaging.event.PasswordResetRequested;
 import com.rally.notification.messaging.event.UserRegistered;
 import com.rally.notification.security.OtpDecryptor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -26,6 +28,8 @@ public class NotificationService {
     private final OtpDecryptor otpDecryptor;
 
     public void notifyUserRegistered(UserRegistered event) {
+        log.info("Handling User.Registered notification for userId={}, email={}, role={}",
+                event.userId(), maskEmail(event.email()), event.role());
         Context context = new Context();
         context.setVariable("email", event.email());
         context.setVariable("role", event.role());
@@ -33,18 +37,24 @@ public class NotificationService {
     }
 
     public void notifyEmailVerificationRequested(EmailVerificationRequested event) {
+        log.info("Handling User.EmailVerificationRequested notification for userId={}, email={}",
+                event.userId(), maskEmail(event.email()));
         Context context = new Context();
         context.setVariable("otp", otpDecryptor.decrypt(event.otp()));
         sendEmail(event.email(), "Verify your email", "email/email-verification", context);
     }
 
     public void notifyPasswordResetRequested(PasswordResetRequested event) {
+        log.info("Handling User.PasswordResetRequested notification for userId={}, email={}",
+                event.userId(), maskEmail(event.email()));
         Context context = new Context();
         context.setVariable("otp", otpDecryptor.decrypt(event.otp()));
         sendEmail(event.email(), "Reset your password", "email/password-reset", context);
     }
 
     public void notifyOrderCreated(OrderCreated event) {
+        log.info("Handling Order.Created notification for orderId={}, userId={}, totalPrice={}",
+                event.orderId(), event.userId(), event.totalPrice());
         Context context = new Context();
         context.setVariable("orderId", event.orderId());
         context.setVariable("items", event.items());
@@ -54,6 +64,8 @@ public class NotificationService {
     }
 
     public void notifyOrderAuthorized(OrderAuthorized event) {
+        log.info("Handling Order.Authorized notification for orderId={}, dealId={}, userId={}, totalPrice={}",
+                event.orderId(), event.dealId(), event.userId(), event.totalPrice());
         Context context = new Context();
         context.setVariable("orderId", event.orderId());
         context.setVariable("dealId", event.dealId());
@@ -62,6 +74,8 @@ public class NotificationService {
     }
 
     public void notifyDealOrderCancelled(DealOrderCancelled event) {
+        log.info("Handling Order.DealCancelled notification for orderId={}, dealId={}, userId={}, reason={}",
+                event.orderId(), event.dealId(), event.userId(), event.reason());
         Context context = new Context();
         context.setVariable("orderId", event.orderId());
         context.setVariable("dealId", event.dealId());
@@ -72,6 +86,8 @@ public class NotificationService {
     }
 
     public void notifyNormalOrderCancelled(NormalOrderCancelled event) {
+        log.info("Handling Order.NormalCancelled notification for orderId={}, userId={}, cancelReason={}",
+                event.orderId(), event.userId(), event.cancelReason());
         Context context = new Context();
         context.setVariable("orderId", event.orderId());
         context.setVariable("cancelReason", event.cancelReason());
@@ -82,12 +98,32 @@ public class NotificationService {
     }
 
     private void sendEmail(UUID userId, String subject, String template, Context context) {
+        log.debug("Resolving email address for userId={}", userId);
         String email = userServiceClient.getUserEmail(userId);
         sendEmail(email, subject, template, context);
     }
 
     private void sendEmail(String email, String subject, String template, Context context) {
-        String htmlBody = templateEngine.process(template, context);
-        emailSender.send(email, subject, htmlBody);
+        log.info("Rendering email template {} for recipient {} with subject '{}'", template, maskEmail(email), subject);
+        try {
+            String htmlBody = templateEngine.process(template, context);
+            emailSender.send(email, subject, htmlBody);
+            log.info("Email sent: recipient={}, subject='{}', template={}", maskEmail(email), subject, template);
+        } catch (Exception e) {
+            log.error("Failed to send email: recipient={}, subject='{}', template={}",
+                    maskEmail(email), subject, template, e);
+            throw e;
+        }
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return email;
+        }
+        int at = email.indexOf('@');
+        if (at <= 1) {
+            return email;
+        }
+        return email.charAt(0) + "***" + email.substring(at);
     }
 }
