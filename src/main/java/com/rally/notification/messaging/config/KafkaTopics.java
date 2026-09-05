@@ -4,7 +4,7 @@ public final class KafkaTopics {
 
     private KafkaTopics() {
     }
-    public static final String ORDER = "order.events";
+    public static final String ORDER = "order.lifecycle_events";
     public static final String USER = "user.events";
 
     public static final String HEADER_EVENT_ID = "X-Id";
