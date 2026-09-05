@@ -1,4 +1,5 @@
 package com.rally.notification.messaging.config;
+import com.rally.notification.messaging.consumer.KafkaCorrelationIdInterceptor;
 import com.rally.notification.messaging.event.DealOrderCancelled;
 import com.rally.notification.messaging.event.NormalOrderCancelled;
 import com.rally.notification.messaging.event.OrderCreated;
@@ -83,11 +84,15 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory, DefaultErrorHandler errorHandler) {
+            ConsumerFactory<String, Object> consumerFactory,
+            DefaultErrorHandler errorHandler,
+            KafkaCorrelationIdInterceptor correlationIdInterceptor) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+        factory.getContainerProperties().setObservationEnabled(true);
         factory.setCommonErrorHandler(errorHandler);
+        factory.setRecordInterceptor(correlationIdInterceptor);
         return factory;
     }
 }

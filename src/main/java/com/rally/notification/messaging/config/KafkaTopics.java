@@ -10,4 +10,5 @@ public final class KafkaTopics {
     public static final String HEADER_EVENT_ID = "X-Id";
     public static final String HEADER_EVENT_TYPE = "X-Type";
     public static final String HEADER_CORRELATION_ID = "X-Correlation-Id";
+    public static final String HEADER_TRACEPARENT = "traceparent";
 }
