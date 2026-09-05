@@ -9,10 +9,12 @@ import org.springframework.web.client.RestTemplate;
 public class RestClientConfig {
 
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate(TracingClientHttpRequestInterceptor tracingInterceptor) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(2000);
         factory.setReadTimeout(5000);
-        return new RestTemplate(factory);
+        RestTemplate restTemplate = new RestTemplate(factory);
+        restTemplate.getInterceptors().add(tracingInterceptor);
+        return restTemplate;
     }
 }
